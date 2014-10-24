@@ -8,8 +8,7 @@ use constant UP    => 0;
 use constant DOWN  => 1;
 use constant LEFT  => 2;
 use constant RIGHT => 3;
-my $env = Minosse::Environment::NFQ->new;
-$env->subscribe(
+Minosse::Environment::NFQ->new->subscribe(
     Minosse::Agent::NFQ->new(
         brain              => "test.ann",
         inputs             => "3",
@@ -22,6 +21,4 @@ $env->subscribe(
         learning_rate      => 0.7,
 
     )
-);
-
-$env->run;
+)->run;
