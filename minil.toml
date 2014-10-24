@@ -1,0 +1,6 @@
+name = "Minosse"
+# badges = ["travis"]
+authority="cpan:MUDLER"
+
+module_maker="ModuleBuildTiny"
+
