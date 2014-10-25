@@ -2,11 +2,13 @@ package Minosse::Environment::NFQ;
 use Deeme::Obj "Minosse::Environment";
 use feature 'say';
 use Data::Printer;
+use Minosse::Util;
 
 use constant UP    => 0;
 use constant DOWN  => 1;
 use constant LEFT  => 2;
 use constant RIGHT => 3;
+
 has rewards        => sub {
     [   [ 0, 0, 0, 0,   0, 0 ],
         [ 0, 1, 2, 3,   1, 1 ],
@@ -16,7 +18,6 @@ has rewards        => sub {
         [ 0, 0, 0, 0,   0, 0 ],
     ];
 };
-
 sub process {
     my $env    = shift;
     my $agent  = shift;
@@ -33,7 +34,7 @@ sub process {
     $status->[0] += 1 if ( $action eq RIGHT and $status->[0] <= 4 );
 
     # p( $env->rewards );
-    print STDERR "BAD BOYYYYY\n"
+    environment "BAD BOYYYYY"
         if !exists $env->rewards->[ $status->[1] ]->[ $status->[0] ];
 
     #returns status and fixed reward

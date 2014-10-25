@@ -4,6 +4,10 @@ use Carp;
 use feature 'say';
 use Data::Printer;
 
+has id => sub {
+    int( rand(1000000) );
+};
+
 sub register {
     my $agent = shift;
     my $env   = shift;
