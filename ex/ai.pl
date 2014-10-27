@@ -30,4 +30,4 @@ my $env
         discount_factor    => 1,
         learning_rate      => 0.5
     )
-    )->endless(1)->run;
+    )->endless(1)->go;

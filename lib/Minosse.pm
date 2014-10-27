@@ -19,7 +19,7 @@ sub import {
     my $caller = caller;
 
     #no strict 'refs';
-    #push @{"${caller}::ISA"}, 'Mojo';
+    #push @{"${caller}::ISA"}, 'Minosse';
     #my $self=shift->new;
     if ($env) {
         eval 'use '.$env.';1;';

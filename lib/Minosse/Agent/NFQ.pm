@@ -5,6 +5,16 @@ use feature 'say';
 use Minosse "Minosse::Environment::NFQ";
 use Minosse::Util;
 
+=head1 NAME
+
+Minosse::Agent::NFQ - NFQ agent for L<Minosse>
+
+=head1 DESCRIPTION
+
+L<Minosse::Agent::NFQ> is a Neural fitted network agent implementation for the <Minosse> simulation framework.
+
+=cut
+
 use Data::Printer;
 on tick => sub { message 0, "Start turn"; };
 
@@ -63,7 +73,7 @@ sub learn {
 }
 
 sub end {
-    message $_[0]->id, "End reached, i must die? saving neural";
+    message $_[0]->id, "End reached, saving neural";
     $_[0]->{_goal_reached}++; #XXX: isn't working right now
     shift->batch_save();
 }

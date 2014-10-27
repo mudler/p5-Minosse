@@ -1,4 +1,15 @@
 package Minosse::Environment::NFQ;
+
+=head1 NAME
+
+Minosse::Environment::NFQ - NFQ Environment for L<Minosse>
+
+=head1 DESCRIPTION
+
+L<Minosse::Environment::NFQ> is a Neural fitted network agent implementation for the <Minosse> simulation framework.
+
+=cut
+
 use Deeme::Obj "Minosse::Environment";
 use feature 'say';
 use Data::Printer;
@@ -9,6 +20,15 @@ use constant UP    => 0;
 use constant DOWN  => 1;
 use constant LEFT  => 2;
 use constant RIGHT => 3;
+
+
+=head2 rewards
+
+Here you can supply the reward matrix (you can subclass and override using a function)
+
+=cut
+
+has rewards   => sub { [] };
 
 sub process {
     my $env    = shift;

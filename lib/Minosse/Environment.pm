@@ -1,17 +1,59 @@
 package Minosse::Environment;
-use Deeme -base;
+
+=head1 NAME
+
+Minosse::Environment - Environment base class for L<Minosse>
+
+=head1 DESCRIPTION
+
+L<Minosse::Environment> is a base class for implementing environments in L<Minosse> simulation framework.
+The Environment holds the simulation, and here you can set special attributes to change various aspects of the simulation
+
+=cut
+
+#use Deeme -base;
+use Deeme::Obj "Minosse::IOLoop";
 use Carp;
 use feature 'say';
 use Storable 'dclone';
 use Minosse::Util;
 use Data::Printer;
+
+
+=head1 ATTRIBUTES
+
+=head2 max_epoch
+
+Your maximum epochs (ticks) that the simulation must run before exit (0 is infinite never ending simulation)
+
+=cut
+
 has max_epoch => sub {0};
+
+=head2 goals
+
+Here you can supply a list of goals (statuses) that must be recorded (and if you explictly set C<endless(0)> when all the agents reaches the goal it will quit the simulation)
+
+=cut
 has goals     => sub { [] };
-has rewards   => sub { [] };
+
+=head2 endless
+
+If set to one, the simulation will run forever or until C<max_epoch>.
+
+=cut
+
 has endless   => sub {0};
 my $singleton;
 sub new { $singleton ||= shift->SUPER::new(@_); }
 
+=head1 METHODS
+
+=head2 subscribe
+
+subscribe the agent to the environment
+
+=cut
 sub subscribe {
     $_[1]->register( $_[0] );
     $_[1]->prepare( $_[0] ) if $_[1]->can("prepare");
@@ -19,6 +61,12 @@ sub subscribe {
     return $_[0];
 }
 
+
+=head2 remove
+
+remove the agent to the environment
+
+=cut
 sub remove {
     $_[1]->unregister( $_[0] );
     $_[0]->{_agents_reached_goal}
@@ -27,10 +75,33 @@ sub remove {
     return $_[0];
 }
 
-sub run {
+=head2 go
+
+starts the simulation
+
+=cut
+
+sub go {
+    $_[0]->_environment_hooks;
     $_[0]->prepare() if $_[0]->can("prepare");
     $_[0]->{_agents_reached_goal}
         = 0;    #tracking the agents who reached the goal state
+    $_[0]->recurring( 0 => sub { shift->emit("tick") } );
+    environment "starting simulation";
+$_[0]->start;
+#    while (1) { $_[0]->emit("tick") }
+}
+
+sub process {
+    croak 'process() not implemented by base class';
+}
+
+=head2 _environment_hooks
+
+run the internal environment hooks
+
+=cut
+sub _environment_hooks {
     my $tick = 0;
     $_[0]->on(
         tick => sub {
@@ -87,11 +158,20 @@ sub run {
             $env->emit( goal_check => ( $_[0], $r->[0] ) );
         }
     );
-    while (1) { $_[0]->emit("tick") }
 }
 
-sub process {
-    croak 'process() not implemented by base class';
-}
+=head1 LICENSE
+
+Copyright (C) mudler.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=head1 AUTHOR
+
+mudler E<lt>mudler@dark-lab.netE<gt>
+
+=cut
+
 
 1;
