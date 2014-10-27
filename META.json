@@ -1,5 +1,5 @@
 {
-   "abstract" : "It's new $module",
+   "abstract" : "A perl Discrete-Event simulator",
    "author" : [
       "mudler <mudler@dark-lab.net>"
    ],

@@ -36,15 +36,13 @@ __END__
 
 =head1 NAME
 
-Minosse - It's new $module
-
-=head1 SYNOPSIS
-
-    use Minosse;
+Minosse - A perl Discrete-Event simulator
 
 =head1 DESCRIPTION
 
-Minosse is ...
+Minosse is under development, it's a small Perl Simulator Framework. Aim to be easy-to-use, portable and quick to hack to obtain your desired behaviour.
+
+If you want to use it, install it and subclass the Agent and Environment classes. There are two example classes using an NFQ algorithm L<Minosse::Agent::NFQ> and L<Minosse::Agent::NFQ> using <Algorithm::QLearning>.
 
 =head1 LICENSE
 
