@@ -19,7 +19,6 @@ use Storable 'dclone';
 use Minosse::Util;
 use Data::Printer;
 
-
 =head1 ATTRIBUTES
 
 =head2 max_epoch
@@ -35,7 +34,8 @@ has max_epoch => sub {0};
 Here you can supply a list of goals (statuses) that must be recorded (and if you explictly set C<endless(0)> when all the agents reaches the goal it will quit the simulation)
 
 =cut
-has goals     => sub { [] };
+
+has goals => sub { [] };
 
 =head2 endless
 
@@ -43,7 +43,7 @@ If set to one, the simulation will run forever or until C<max_epoch>.
 
 =cut
 
-has endless   => sub {0};
+has endless => sub {0};
 my $singleton;
 sub new { $singleton ||= shift->SUPER::new(@_); }
 
@@ -54,6 +54,7 @@ sub new { $singleton ||= shift->SUPER::new(@_); }
 subscribe the agent to the environment
 
 =cut
+
 sub subscribe {
     $_[1]->register( $_[0] );
     $_[1]->prepare( $_[0] ) if $_[1]->can("prepare");
@@ -61,12 +62,12 @@ sub subscribe {
     return $_[0];
 }
 
-
 =head2 remove
 
 remove the agent to the environment
 
 =cut
+
 sub remove {
     $_[1]->unregister( $_[0] );
     $_[0]->{_agents_reached_goal}
@@ -82,14 +83,15 @@ starts the simulation
 =cut
 
 sub go {
+    $_[0]->_load_plugins;
     $_[0]->_environment_hooks;
     $_[0]->prepare() if $_[0]->can("prepare");
     $_[0]->{_agents_reached_goal}
         = 0;    #tracking the agents who reached the goal state
-    $_[0]->recurring( 0 => sub { shift->emit("tick") } );
-    environment "starting simulation";
-$_[0]->start;
-#    while (1) { $_[0]->emit("tick") }
+    $_[0]->recurring( 0 => sub { shift->emit("tick") } ); #adding our "tick" to the Event loop
+    environment "starting simulation, hold on.";
+    $_[0]->start;
+    #    while (1) { $_[0]->emit("tick") }
 }
 
 sub process {
@@ -101,6 +103,7 @@ sub process {
 run the internal environment hooks
 
 =cut
+
 sub _environment_hooks {
     my $tick = 0;
     $_[0]->on(
@@ -160,6 +163,15 @@ sub _environment_hooks {
     );
 }
 
+sub _load_plugins {
+    my $self   = shift;
+    my $Loader = Minosse::Loader->new;
+    for ( $Loader->search("Minosse::Plugin") ) {
+        next if $Loader->load($_);
+        $_->new->register($self) if $_->can("register");
+    }
+}
+
 =head1 LICENSE
 
 Copyright (C) mudler.
@@ -172,6 +184,5 @@ it under the same terms as Perl itself.
 mudler E<lt>mudler@dark-lab.netE<gt>
 
 =cut
-
 
 1;
