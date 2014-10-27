@@ -152,7 +152,7 @@ sub _environment_hooks {
             my $current_status = dclone( $env->{status}->{ $_[0] } );
             environment "current status @{$current_status}\n" if DEBUG;
             my $r = $env->process(@_);
-            environment "REWARD is " . $r->[1];
+            environment "Reward for the agent is " . $r->[1];
             $env->{status}->{ $_[0] } = $r->[0];
             $env->emit( update_beliefs => ( $current_status, $_[1], @{$r} ) );
             $env->emit( goal_check => ( $_[0], $r->[0] ) );

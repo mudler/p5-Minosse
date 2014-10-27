@@ -57,8 +57,8 @@ sub message {
     my $caller = caller;
     my $id     = shift;
     print STDERR color 'bold yellow';
-    print STDERR encode_utf8( '❰ ' . $caller . ' ❱ ♦ ' . $id . ' ♦' );
-    print STDERR color 'bold white';
+    print STDERR encode_utf8( '❰ ' . $caller . ' ❱ ♦ ' . $id . ' ♦ ' );
+    print STDERR color 'bold blue';
     print STDERR join( "\n", @_ ), "\n";
     print STDERR color 'reset';
 }
