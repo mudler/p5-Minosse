@@ -88,9 +88,11 @@ sub go {
     $_[0]->prepare() if $_[0]->can("prepare");
     $_[0]->{_agents_reached_goal}
         = 0;    #tracking the agents who reached the goal state
-    $_[0]->recurring( 0 => sub { shift->emit("tick") } ); #adding our "tick" to the Event loop
+    $_[0]->recurring( 0 => sub { shift->emit("tick") } )
+        ;       #adding our "tick" to the Event loop
     environment "starting simulation, hold on.";
     $_[0]->start;
+
     #    while (1) { $_[0]->emit("tick") }
 }
 
@@ -106,6 +108,12 @@ run the internal environment hooks
 
 sub _environment_hooks {
     my $tick = 0;
+    $_[0]->on(
+        simulation_end => sub {
+            my $self = shift;
+            $self->unregister($_) for ( keys $self->{status} );
+        }
+    );
     $_[0]->on(
         tick => sub {
             environment "[Maximum epoch "

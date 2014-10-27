@@ -9,7 +9,7 @@ use constant DOWN  => 1;
 use constant LEFT  => 2;
 use constant RIGHT => 3;
 my $env
-    = Minosse::Environment::NFQ->new->max_epoch(0)
+    = Minosse::Environment::NFQ->new->max_epoch(1000000)
     ->goals( [ [ 3, 3 ] ] )->rewards(
     [   [ -1, 1,  1,  1,   -1, -1 ],
         [ -1, -1, 1,  1,   -1, -1 ],
@@ -26,8 +26,8 @@ my $env
         outputs            => 1,
         auto_learn         => 1,
         actions            => [ UP, DOWN, LEFT, RIGHT ],
-        choose_best_factor => 0.5,
+        choose_best_factor => 0,
         discount_factor    => 1,
         learning_rate      => 0.5
     )
-    )->endless(0)->go;
+    )->endless(1)->go;
