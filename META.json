@@ -42,6 +42,22 @@
       },
       "runtime" : {
          "requires" : {
+            "Algorithm::QLearning::NFQ" : "0",
+            "Data::Printer" : "0",
+            "Deeme" : "0",
+            "Deeme::Obj" : "0",
+            "Encode" : "0",
+            "Import::Into" : "0",
+            "Mojo::Base" : "0",
+            "Mojo::IOLoop::Client" : "0",
+            "Mojo::IOLoop::Delay" : "0",
+            "Mojo::IOLoop::Server" : "0",
+            "Mojo::IOLoop::Stream" : "0",
+            "Mojo::Reactor::Poll" : "0",
+            "Mojo::Util" : "0",
+            "Scalar::Util" : "0",
+            "Term::ANSIColor" : "0",
+            "feature" : "0",
             "perl" : "5.008001"
          }
       },
@@ -52,6 +68,11 @@
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "repository" : {
+         "url" : "ssh://git://dev.dark-lab.net/2222/magistrale/minosse.git"
+      }
+   },
    "version" : "0.01",
    "x_authority" : "cpan:MUDLER"
 }

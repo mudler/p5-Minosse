@@ -6,13 +6,24 @@ use Minosse "Minosse::Environment::NFQ";
 use Minosse::Util;
 
 use Data::Printer;
+on tick => sub { message 0, "Start turn"; };
 
-on tick => sub { sleep 1; message 0,"Start turn"; };
+sub startup {
+    my $self = shift;
+    my $env  = shift;
+    on( tick => sub {
+            message $self->id, "start turn";
+        }
+    );
+}
 
 sub prepare {
     my $self = shift;
     my $env  = shift;
-    on( tick => sub {  message $self->id,"end turn"; } );
+    on( tick => sub {
+            message $self->id, "end turn";
+        }
+    );
 }
 
 sub choose {
@@ -35,19 +46,25 @@ sub learn {
     my $agent          = shift;
     my $env            = shift;
     my $current_status = shift;
-
-    #  p($current_status);
     my $current_action = shift;
     my $r              = pop @_;
-    $agent->train( $current_status, $current_action,
+    my $qv             = $agent->batch( $current_status, $current_action,
         $env->{status}->{$agent}, $r );
     message $agent->id,
           "position ["
         . $current_status->[0] . ", "
-        . $current_status->[1] . "]";
-
-    #die("GOOD") if $current_status->[1] == 3 and $current_status->[0] ==3;
+        . $current_status->[1]
+        . "] to [ "
+        . $env->{status}->{$agent}->[0] . ", "
+        . $env->{status}->{$agent}->[1]
+        . "] with Qval = $qv";
 
     #    $agent->nn->print_connections;
+}
+
+sub end {
+    message $_[0]->id, "End reached, i must die? saving neural";
+    $_[0]->{_goal_reached}++; #XXX: isn't working right now
+    shift->batch_save();
 }
 1;
