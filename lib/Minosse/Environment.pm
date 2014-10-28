@@ -72,10 +72,14 @@ remove the agent to the environment
 
 sub remove {
     $_[1]->unregister( $_[0] );
-    $_[0]->{_agents_reached_goal}
-        += $_[1]->{_goal_reached};    #sums the agent's goals reached number
+    $_[0]->_goal_update( $_[1] );
     environment "$_[0] removed";
     return $_[0];
+}
+
+sub _goal_update {
+    shift->{_agents_reached_goal}
+        += shift->{_goal_reached};    #sums the agent's goals reached number
 }
 
 =head2 go
@@ -85,11 +89,11 @@ starts the simulation
 =cut
 
 sub go {
+    $_[0]->{_agents_reached_goal}
+        = 0;    #tracking the agents who reached the goal state
     $_[0]->_load_plugins;
     $_[0]->_environment_hooks;
     $_[0]->prepare() if $_[0]->can("prepare");
-    $_[0]->{_agents_reached_goal}
-        = 0;    #tracking the agents who reached the goal state
     $_[0]->recurring( 0 => sub { shift->emit("tick") } )
         ;       #adding our "tick" to the Event loop
     environment "starting simulation, hold on.";
@@ -103,19 +107,13 @@ sub process {
 }
 
 =head2 _environment_hooks
-
+t
 run the internal environment hooks
 
 =cut
 
 sub _environment_hooks {
     my $tick = 0;
-    $_[0]->on(
-        simulation_end => sub {
-            my $self = shift;
-            $self->unregister($_) for ( keys $self->{status} );
-        }
-    );
     $_[0]->on(
         tick => sub {
             environment "[Maximum epoch "
@@ -142,11 +140,10 @@ sub _environment_hooks {
             my $env    = shift;
             my $agent  = shift;
             my $status = shift;
-            (       compare($_,$status)
-                    and $env->endless == 0 )
+            ( $env->endless == 0 )
                 ? $env->remove($agent)
-                : 1
-                for ( @{ $env->goals } );
+                : $agent->goal_reached and $env->_goal_update($agent)
+                for ( grep { compare( $_, $status ) } @{ $env->goals } );
 
             environment "A total of "
                 . $env->{_agents_reached_goal}

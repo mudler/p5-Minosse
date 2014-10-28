@@ -10,7 +10,6 @@ L<Minosse::Agent> is a base class for implementing agents in L<Minosse> simulati
 
 =cut
 
-
 use Deeme::Obj -base;
 use Carp;
 use feature 'say';
@@ -61,7 +60,7 @@ sub register {
             $agent->learn(@_);
         }
     );
-    $env->on( simulation_end => sub { $agent->end } );
+    $env->on( simulation_end => sub { $agent->unregister($env) } );
     $cb = sub {
         $env->emit(
             choise_result => (
@@ -75,15 +74,23 @@ sub register {
     $env->{_agents}++;
 }
 
-
-
 =head2 end
+
+Executed at the end
+
+=cut
+
+sub end {
+    shift->goal_reached;
+}
+
+=head2 goal_reached
 
 Increments the internal counter of goal reached
 
 =cut
 
-sub end {
+sub goal_reached {
     shift->{_goal_reached}++;
 }
 
@@ -119,7 +126,5 @@ it under the same terms as Perl itself.
 mudler E<lt>mudler@dark-lab.netE<gt>
 
 =cut
-
-
 
 1;
