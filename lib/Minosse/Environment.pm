@@ -178,6 +178,18 @@ sub _load_plugins {
     }
 }
 
+=head2 step
+t
+Add the callback to the main event
+
+    Minosse::Environment->new->step( sub { sleep 1; })->go; # Now the simulation sleeps between each "tick"
+
+=cut
+
+sub step {
+    shift->on( tick => $_ );
+}
+
 =head1 LICENSE
 
 Copyright (C) mudler.
