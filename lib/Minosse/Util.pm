@@ -9,13 +9,14 @@ use constant DEBUG => $ENV{DEBUG} || 0;
 use MIME::Base64 qw(decode_base64 encode_base64);
 use Time::HiRes ();
 use Digest::MD5 qw(md5 md5_hex);
+use Data::Dumper;
 
 # Check for monotonic clock support
 use constant MONOTONIC => eval
     '!!Time::HiRes::clock_gettime(Time::HiRes::CLOCK_MONOTONIC())';
 our @EXPORT = qw(message DEBUG environment warning);
 our @EXPORT_OK
-    = qw(monkey_patch _stash b64_decode b64_encode class_to_path steady_time md5_sum);
+    = qw(monkey_patch _stash b64_decode b64_encode class_to_path steady_time md5_sum compare);
 
 my $NAME = eval 'use Sub::Util; 1' ? \&Sub::Util::set_subname : sub { $_[1] };
 sub b64_decode    { decode_base64( $_[0] ) }
@@ -63,6 +64,11 @@ sub message {
     print STDERR color 'reset';
 }
 
+sub compare ($$) {
+    local $Data::Dumper::Terse  = 1;
+    local $Data::Dumper::Indent = 0;
+    Dumper(shift) eq Dumper(shift);
+}
 sub environment {
     my $caller = caller;
     print STDERR color 'bold magenta';

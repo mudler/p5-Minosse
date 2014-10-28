@@ -17,6 +17,8 @@ use Carp;
 use feature 'say';
 use Storable 'dclone';
 use Minosse::Util;
+use Minosse::Util qw(compare);
+
 use Data::Printer;
 
 =head1 ATTRIBUTES
@@ -140,8 +142,7 @@ sub _environment_hooks {
             my $env    = shift;
             my $agent  = shift;
             my $status = shift;
-            (           $_->[0] eq $status->[0]
-                    and $_->[1] eq $status->[1]
+            (       compare($_,$status)
                     and $env->endless == 0 )
                 ? $env->remove($agent)
                 : 1
