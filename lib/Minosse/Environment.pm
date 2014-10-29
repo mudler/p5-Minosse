@@ -187,7 +187,8 @@ Add the callback to the main event
 =cut
 
 sub step {
-    shift->on( tick => $_ );
+    $_[0]->on( tick => $_[1] );
+    shift;
 }
 
 =head1 LICENSE
