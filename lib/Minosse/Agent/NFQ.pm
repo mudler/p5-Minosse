@@ -74,7 +74,7 @@ sub learn {
 
 sub end {
     message $_[0]->id, "End reached, saving neural";
-    $_[0]->{_goal_reached}++;    #XXX: isn't working right now
+    $_[0]->goal_reached;
     shift->batch_save();
 }
 1;

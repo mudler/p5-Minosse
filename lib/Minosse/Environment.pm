@@ -46,6 +46,9 @@ If set to one, the simulation will run forever or until C<max_epoch>.
 =cut
 
 has endless => sub {0};
+
+has actions => sub { [] };
+
 my $singleton;
 sub new { $singleton ||= shift->SUPER::new(@_); }
 
@@ -59,6 +62,7 @@ subscribe the agent to the environment
 
 sub subscribe {
     $_[1]->register( $_[0] );
+    $_[1]->actions($_[0]->actions);
     $_[1]->prepare( $_[0] ) if $_[1]->can("prepare");
     $_[0]->{status}->{ $_[1] } = [ 0, 0 ];
     return $_[0];
@@ -71,6 +75,7 @@ remove the agent to the environment
 =cut
 
 sub remove {
+    $_[1]->end if $_[1]->can("end");
     $_[1]->unregister( $_[0] );
     $_[0]->_goal_update( $_[1] );
     environment "$_[0] removed";

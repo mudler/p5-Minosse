@@ -15,20 +15,37 @@ use feature 'say';
 use Data::Printer;
 use Storable qw(dclone);
 use Minosse::Util;
+use Minosse::Util qw(slurp);
 
-#Possible actions
-use constant UP    => 0;
-use constant DOWN  => 1;
-use constant LEFT  => 2;
-use constant RIGHT => 3;
+use constant INSTALL => 0;
+use constant REMOVE  => 1;
 
-has actions => sub { [ UP, DOWN, LEFT, RIGHT ] }; #defyining the agent's possible actions in the environment
+use JSON;
+
+has [qw(universe specfile)];
+
+has actions => sub { [ INSTALL, REMOVE ] };
 
 =head2 rewards
 
 Here you can supply the reward matrix (you can subclass and override using a function)
 
 =cut
+
+sub prepare {
+    my $self = shift;
+
+    #Loads the universe and the specfile
+    $self->{_universe} = decode_json( slurp( $self->universe ) );
+    $self->{_specfile} = decode_json( slurp( $self->specfile ) );
+    environment "Universe and Specfile are loaded";
+    p( $self->{_specfile} );
+    p( $self->{_universe} );
+}
+
+sub reward {
+
+}
 
 has rewards => sub { [] };
 
