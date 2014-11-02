@@ -16,7 +16,7 @@ L<Minosse::Agent::NFQ> is a Neural fitted network agent implementation for the <
 =cut
 
 use Data::Printer;
-on tick => sub { message 0, "Start turn"; };
+#on tick => sub { message 0, "Start turn"; };
 
 sub startup {
     my $self = shift;

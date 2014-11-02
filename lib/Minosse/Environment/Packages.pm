@@ -1,12 +1,12 @@
-package Minosse::Environment::NFQ;
+package Minosse::Environment::Packages;
 
 =head1 NAME
 
-Minosse::Environment::NFQ - NFQ Environment for L<Minosse>
+Minosse::Environment::Packages - Packages Environment for L<Minosse>
 
 =head1 DESCRIPTION
 
-L<Minosse::Environment::NFQ> is a Neural fitted network agent implementation for the <Minosse> simulation framework.
+L<Minosse::Environment::Packages> is a Neural fitted network agent implementation for the <Minosse> simulation framework.
 
 =cut
 
@@ -34,13 +34,13 @@ Here you can supply the reward matrix (you can subclass and override using a fun
 
 sub prepare {
     my $self = shift;
-
     #Loads the universe and the specfile
     $self->{_universe} = decode_json( slurp( $self->universe ) );
     $self->{_specfile} = decode_json( slurp( $self->specfile ) );
     environment "Universe and Specfile are loaded";
     p( $self->{_specfile} );
     p( $self->{_universe} );
+    die("test");
 }
 
 sub reward {
@@ -62,10 +62,10 @@ sub process {
 
     #sleep 1;
     # Change status of the agent
-    $status->[1] += 1 if ( $action eq UP );
-    $status->[1] -= 1 if ( $action eq DOWN );
-    $status->[0] -= 1 if ( $action eq LEFT );
-    $status->[0] += 1 if ( $action eq RIGHT );
+    # $status->[1] += 1 if ( $action eq UP );
+    # $status->[1] -= 1 if ( $action eq DOWN );
+    # $status->[0] -= 1 if ( $action eq LEFT );
+    # $status->[0] += 1 if ( $action eq RIGHT );
     if (    ( $status->[1] <= 5 and $status->[1] >= 0 )
         and ( $status->[0] <= 5 and $status->[0] >= 0 ) )
     {

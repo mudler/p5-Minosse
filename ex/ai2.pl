@@ -2,10 +2,11 @@
 
 use lib 'lib';
 use Minosse::Agent::NFQ;
-use Minosse::Environment::NFQ;
+use Minosse::Environment::Packages;
 
 my $env
-    = Minosse::Environment::NFQ->new->max_epoch(10000)
+    = Minosse::Environment::Packages->new->max_epoch(10000)
+    ->universe("ex/universe.json")->specfile("ex/specfile.json")
     ->goals( [ [ 3, 3 ] ] )->rewards(
     [   [ -1, 1,  1,  1,   -1, -1 ],
         [ -1, -1, 1,  1,   -1, -1 ],
@@ -16,7 +17,7 @@ my $env
     ]
     )->subscribe(
     Minosse::Agent::NFQ->new(
-        brain              => "nets/sigmoid.ann",
+        brain              => "nets/packages.ann",
         inputs             => "3",
         hidden_layers      => 4,
         outputs            => 1,
@@ -25,4 +26,4 @@ my $env
         discount_factor    => 1,
         learning_rate      => 0.5
     )
-    )->endless(1)->go;
+    )->endless(1)->step( sub { sleep 1; } )->go;

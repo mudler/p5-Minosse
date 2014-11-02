@@ -1,0 +1,11 @@
+{
+    "requires": [
+        {
+            "name"     : "wordpress",
+            "version"  : ">1"
+        }
+    ],
+    "remove": [
+        "mysql"
+    ]
+}
