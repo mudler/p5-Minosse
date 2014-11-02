@@ -8,6 +8,7 @@ requires 'Encode';
 requires 'Hash::Util::FieldHash';
 requires 'IO::Pipely';
 requires 'Import::Into';
+requires 'JSON';
 requires 'List::Util';
 requires 'MIME::Base64';
 requires 'Perl::OSType';
