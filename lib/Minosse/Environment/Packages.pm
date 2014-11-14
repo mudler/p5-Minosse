@@ -212,14 +212,14 @@ sub install_module {
     if ( $self->{seen}{$module}++ ) {
 
         # TODO: circular dependencies
-        environment("Already tried $module. Skipping.\n");
+        environment("Already tried $module. Skipping.");
         return 1;
     }
 
     if ( $self->{skip_satisfied} ) {
         my ( $ok, $local ) = $self->check_module( $module, $version || 0 );
         if ($ok) {
-            environment( "You have $module ($local)\n", 1 );
+            environment( "You have $module ($local)" );
             return 1;
         }
     }
@@ -227,12 +227,12 @@ sub install_module {
     my $dist = $self->resolve_name( $module, $version );
     unless ($dist) {
         my $what = $module . ( $version ? " ($version)" : "" );
-        error( "Couldn't find module or a distribution $what", 1 );
+        error( "Couldn't find module or a distribution $what" );
         return;
     }
 
     if ( $dist->{distvname} && $self->{seen}{ $dist->{distvname} }++ ) {
-        environment("Already tried $dist->{distvname}. Skipping.\n");
+        environment("Already tried $dist->{distvname}. Skipping.");
         return 1;
     }
 
@@ -246,7 +246,7 @@ sub install_module {
             )
         {
             environment(
-                "Found $dist->{module} $dist->{module_version} which doesn't satisfy $version.\n",
+                "Found $dist->{module} $dist->{module_version} which doesn't satisfy $version.",
                 1
             );
             return;
@@ -260,17 +260,17 @@ sub install_module {
         my ( $ok, $local )
             = $self->check_module( $dist->{module}, $requirement );
         if ( $self->{skip_installed} && $ok ) {
-            environment( "$dist->{module} is up to date. ($local)\n", 1 );
+            environment( "$dist->{module} is up to date. ($local)" );
             return 1;
         }
     }
 
     if ( $dist->{dist} eq 'perl' ) {
-        environment("skipping $dist->{pathname}\n");
+        environment("skipping $dist->{pathname}");
         return 1;
     }
 
-    environment("--> Working on $module\n");
+    environment("--> Working on $module");
 
     return $self->build_stuff( $module, $dist, $depth );
 }
@@ -356,7 +356,7 @@ sub install_deps_bailout {
             $self->force_install == 0
             )
         {
-            error( "Bailing out the installation for $target.", 1 );
+            error( "Bailing out the installation for $target." );
             return;
         }
     }
@@ -543,9 +543,9 @@ sub should_install {
     environment("Checking if you have $mod $ver ... ");
     my($ok, $local) = $self->check_module($mod, $ver);
 
-    if ($ok)       { environment("Yes ($local)\n") }
-    elsif ($local) { environment("No (" . $self->unsatisfy_how($local, $ver) . ")\n") }
-    else           { environment("No\n") }
+    if ($ok)       { environment("Yes ($local)") }
+    elsif ($local) { environment("No (" . $self->unsatisfy_how($local, $ver) . ")") }
+    else           { environment("No") }
 
     return $mod unless $ok;
     return;
@@ -566,7 +566,7 @@ sub install_deps {
             if ( $dep->is_requirement
                 && !$self->check_perl_version( $dep->version ) )
             {
-                environment("Needs perl @{[$dep->version]}, you have $]\n");
+                environment("Needs perl @{[$dep->version]}, you have $]");
                 push @fail, 'perl';
             }
         }
@@ -579,15 +579,12 @@ sub install_deps {
     if (@install) {
         environment( "==> Found dependencies: "
                 . join( ", ", map $_->module, @install )
-                . "\n" );
+                . "" );
     }
 
     for my $dep (@install) {
         $self->install_module( $dep->module, $depth + 1, $dep->version );
     }
-
-    $self->chdir( $self->{base} );
-    $self->chdir($dir) if $dir;
 
     if ( $self->{scandeps} ) {
         return
@@ -621,7 +618,7 @@ sub effective_feature {
     if ( $self->{interactive} ) {
         require CPAN::Meta::Requirements;
 
-        environment( "[@{[ $feature->description ]}]\n", 1 );
+        environment( "[@{[ $feature->description ]}]" );
 
         my $req = CPAN::Meta::Requirements->new;
         for my $phase ( @{ $dist->{want_phases} } ) {
@@ -643,8 +640,7 @@ sub effective_feature {
             my $howmany = @missing;
             environment(
                 "==> Found missing dependencies: "
-                    . join( ", ", @missing ) . "\n",
-                1
+                    . join( ", ", @missing )
             );
             local $self->{prompt} = 1;
             return $self->prompt_bool(
@@ -750,7 +746,7 @@ sub build_stuff {
 
     require CPAN::Meta;
 
-    environment("META.yml/json not found. Creating skeleton for it.\n");
+    environment("META.yml/json not found. Creating skeleton for it.");
     $dist->{cpanmeta} = CPAN::Meta->new(
         { name => $dist->{dist}, version => $dist->{version} } );
 
@@ -781,8 +777,8 @@ sub build_stuff {
 
     if ( $self->{showdeps} ) {
         for my $dep ( @config_deps, @deps ) {
-            print $dep->module,
-                ( $dep->version ? ( "~" . $dep->version ) : "" ), "\n";
+            environment $dep->module,
+                ( $dep->version ? ( "~" . $dep->version ) : "" );
         }
         return 1;
     }
@@ -807,7 +803,7 @@ sub build_stuff {
 
     if ( $self->{installdeps} && $depth == 0 ) {
 
-        environment("<== Installed dependencies for $stuff. Finishing.\n");
+        environment("<== Installed dependencies for $stuff. Finishing.");
         return 1;
 
     }
@@ -835,7 +831,7 @@ sub build_stuff {
         : $local     ? "installed $distname ($action from $local)"
         :              "installed $distname";
     my $msg = "Successfully $how";
-    environment( "$msg\n", 1 );
+    environment( "$msg" );
     $self->{installed_dists}++;
 
    #   $self->save_meta( $stuff, $dist, $module_name, \@config_deps, \@deps );
@@ -905,7 +901,7 @@ sub search_module {
 
     if ( $self->{mirror_index} ) {
         $self->mask_output( chat =>
-                "Searching $module on mirror index $self->{mirror_index} ...\n"
+                "Searching $module on mirror index $self->{mirror_index} ..."
         );
         my $pkg = $self->search_mirror_index_file( $self->{mirror_index},
             $module, $version );
@@ -926,13 +922,13 @@ sub search_module {
 
 MIRROR: for my $mirror ( @{ $self->{mirrors} } ) {
         $self->mask_output(
-            chat => "Searching $module on mirror $mirror ...\n" );
+            chat => "Searching $module on mirror $mirror ..." );
         my $name    = '02packages.details.txt.gz';
         my $uri     = "$mirror/modules/$name";
         my $gz_file = $self->package_index_for($mirror) . '.gz';
 
         unless ( $self->{pkgs}{$uri} ) {
-            $self->mask_output( chat => "Downloading index file $uri ...\n" );
+            $self->mask_output( chat => "Downloading index file $uri ..." );
             $self->mirror( $uri, $gz_file );
             $self->generate_mirror_index($mirror) or next MIRROR;
             $self->{pkgs}{$uri} = "!!retrieved!!";
@@ -1021,7 +1017,7 @@ sub search_metacpan {
 
     unless ($release) {
         environment(
-            "! Could not find a release matching $module ($version) on MetaCPAN.\n"
+            "! Could not find a release matching $module ($version) on MetaCPAN."
         );
         return;
     }
@@ -1093,11 +1089,6 @@ sub agent {
     my $agent = "minosse";
     $agent .= " perl/$]" if $self->{report_perl_version};
     $agent;
-}
-
-sub chdir {
-    my $self = shift;
-    Cwd::chdir( File::Spec->canonpath( $_[0] ) ) or die "$_[0]: $!";
 }
 
 sub unsatisfied_deps {
