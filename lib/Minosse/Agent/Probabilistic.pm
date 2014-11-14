@@ -1,8 +1,6 @@
-package Minosse::Agent::NFQ;
+package Minosse::Agent::Probabilistic;
 use Deeme::Obj "Minosse::Agent";
-use base "Algorithm::QLearning::NFQ";
 use feature 'say';
-use Minosse "Minosse::Environment::NFQ";
 use Minosse::Util;
 
 =head1 NAME

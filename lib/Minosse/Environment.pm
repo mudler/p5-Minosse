@@ -64,7 +64,7 @@ sub subscribe {
     $_[1]->register( $_[0] );
     $_[1]->actions($_[0]->actions);
     $_[1]->prepare( $_[0] ) if $_[1]->can("prepare");
-    $_[0]->{status}->{ $_[1] } = [ 0, 0 ];
+    #$_[0]->{status}->{ $_[1] } = [ 0, 0 ];
     return $_[0];
 }
 

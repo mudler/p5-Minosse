@@ -15,7 +15,7 @@ use Carp;
 # Check for monotonic clock support
 use constant MONOTONIC => eval
     '!!Time::HiRes::clock_gettime(Time::HiRes::CLOCK_MONOTONIC())';
-our @EXPORT = qw(message DEBUG environment warning);
+our @EXPORT = qw(message DEBUG environment warning error);
 our @EXPORT_OK
     = qw(monkey_patch _stash b64_decode b64_encode class_to_path steady_time md5_sum compare slurp spurt);
 
@@ -88,6 +88,15 @@ sub warning {
     print STDERR join( "\n", @_ ), "\n";
     print STDERR color 'reset';
 }
+
+sub error {
+    print STDERR color 'bold yellow';
+    print STDERR encode_utf8('⚑ ');
+    print STDERR color 'bold white';
+    print STDERR join( "\n", @_ ), "\n";
+    print STDERR color 'reset';
+}
+
 
 sub spurt {
     my ( $content, $path ) = @_;

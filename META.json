@@ -52,6 +52,7 @@
             "Hash::Util::FieldHash" : "0",
             "IO::Pipely" : "0",
             "Import::Into" : "0",
+            "JSON" : "0",
             "List::Util" : "0",
             "MIME::Base64" : "0",
             "Perl::OSType" : "0",

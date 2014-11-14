@@ -65,7 +65,7 @@ sub register {
         $env->emit(
             choise_result => (
                 $agent,
-                $agent->choose( $env->{status}->{$agent} ),
+                $agent->choose( $env, $env->{status}->{$agent} ),
                 $env->{status}->{$agent}
             )
         );
