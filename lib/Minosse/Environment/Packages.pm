@@ -350,8 +350,7 @@ sub install_deps_bailout {
 
     my ( $ok, $fail ) = $self->install_deps( $dir, $depth, @deps );
     if ( !$ok ) {
-        error( "Installing the dependencies failed: " . join( ", ", @$fail ),
-            1 );
+        error( "Installing the dependencies failed: " . join( ", ", @$fail ));
         unless (
             $self->force_install == 0
             )
