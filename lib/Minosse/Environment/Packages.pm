@@ -96,11 +96,18 @@ sub process {
     # p( $env->rewards );
     environment "BAD BOYYYYY, you shouldn't see me"
         if !exists $env->rewards->[ $status->[1] ]->[ $status->[0] ];
-
     return [ $status, $reward ];
 }
 
 ##### from cpanminus
+
+sub grab_deps{
+    my $self=shift;
+        my $dist = $self->resolve_name( shift, shift );
+    my @deps        = $self->find_prereqs($dist);
+    environment "@deps ";
+
+}
 
 sub cpan_module {
     my ( $self, $module, $dist, $version ) = @_;
