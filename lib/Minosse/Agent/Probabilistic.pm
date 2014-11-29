@@ -101,15 +101,21 @@ sub solve {
     my $variables = shift;
     my $clauses   = shift;
     my $model     = shift // {};
+    use Data::Dumper;
+    print STDERR Dumper($variables) . " - "
+        . Dumper($clauses) . " - "
+        . Dumper($model) . "\n";
 
     # If every clause is satisfiable, return the model which worked.
     return $model
-        if ( grep { !$self->satisfiable( $_, $model ) } @{$clauses} == 0 );
+        if (
+        ( grep { !$self->satisfiable( $_, $model ) } @{$clauses} ) == 0 );
+    print STDERR "Helloo\n";
 
     # If any clause is **exactly** false, return `false`; this model will not
     # work.
     return 0
-        if ( grep { !$self->satisfiable( $_, $model ) } @{$clauses} > 0 );
+        if ( ( grep { !$self->satisfiable( $_, $model ) } @{$clauses} ) > 0 );
 
     # Choose a new value to test by simply looping over the possible variables
     # and checking to see if the variable has been given a value yet.
@@ -143,14 +149,18 @@ sub update {
 # ### resolve
 # Resolve some variable to its actual value, or undefined.
 sub resolve {
-    my $self  = shift;
-    my $var   = shift;
+    my $self = shift;
+    my $var  = shift;
+    print STDERR "VAR: $var  \n";
+    print STDERR "VARsub: " . substr $var, 0, 1 . "  \n";
+
     my $model = shift;
     if ( substr $var, 0, 1 eq "-" ) {
         my $value = $model->{ substr $var, 1 };
         return !defined $value ? undef : !$value;
     }
     else {
+
         return $model->{$var};
     }
 }
@@ -161,15 +171,17 @@ sub satisfiable {
     my $self    = shift;
     my $clauses = shift;
     my $model   = shift;
+    my @clause = @{$clauses};
+    print STDERR "is " . Dumper($clauses) . " satisfable? " . Dumper($model);
 
     # If every variable is false, then the clause is false.
     return 0
-        if ( grep { $self->resolve( $_, $model ) } @{$clauses} == 0 );
+        if ( (grep {print STDERR "_$_\n\n\n\n"; $self->resolve( $_, $model ) }  @{$clauses} ) == 0 );
 
     # If any variable is true, then the clause is true.
 
     return 1
-        if ( grep { !$self->resolve( $_, $model ) } @{$clauses} == 0 );
+        if ( (grep { !$self->resolve( $_, $model ) }  @{$clauses}) == 0 );
 
     # Otherwise, we don't know what the clause is.
     return undef;

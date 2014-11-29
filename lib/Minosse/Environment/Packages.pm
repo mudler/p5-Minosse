@@ -106,6 +106,7 @@ sub grab_deps{
         my $dist = $self->resolve_name( shift, shift );
     my @deps        = $self->find_prereqs($dist);
     environment "@deps ";
+    return @deps;
 
 }
 
