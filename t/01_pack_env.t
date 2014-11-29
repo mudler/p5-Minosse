@@ -7,5 +7,9 @@ $env->init();
 ( my $module, my $version ) = $env->parse_version("Net::Twitter");
 $env->install_module( $module, 0, $version );
 
+print "===================\n\n\n\n";
+(  $module,  $version )  = $env->parse_version("Data::Dumper");
+$env->grab_deps( $module, $version );
+
 done_testing;
 
