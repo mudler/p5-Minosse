@@ -29,6 +29,7 @@ use CPAN::Meta::Prereqs;
 use HTTP::Request;
 use Minosse::Asset::Dep;
 use LWP::UserAgent;
+use Algorithm::SAT::Backtracking;
 
 use JSON;
 use version ();
@@ -37,8 +38,9 @@ use local::lib;
 
 has [qw(universe specfile)];
 
-has 'force_install' => sub{1};
-has actions => sub { [ INSTALL, REMOVE ] };
+has 'force_install' => sub {1};
+has actions         => sub { [ INSTALL, REMOVE ] };
+has 'solver'        => sub { Algorithm::SAT::Backtracking->new };
 
 =head2 rewards
 
@@ -53,8 +55,9 @@ sub prepare {
     $self->{_universe} = decode_json( slurp( $self->universe ) );
     $self->{_specfile} = decode_json( slurp( $self->specfile ) );
     environment "Universe and Specfile are correctly loaded";
-    p( $self->{_specfile} );
-    p( $self->{_universe} );
+
+    #p( $self->{_specfile} );
+    #p( $self->{_universe} );
     $self->init();
     die("test");
 }
@@ -99,16 +102,63 @@ sub process {
     return [ $status, $reward ];
 }
 
-##### from cpanminus
+sub solve {
+    my $self = shift;
+    my $name = shift;
 
-sub grab_deps{
-    my $self=shift;
-        my $dist = $self->resolve_name( shift, shift );
-    my @deps        = $self->find_prereqs($dist);
-    environment "@deps ";
-    return @deps;
+    my $clauses   = $self->grab_deps($name);
+    my $variables = [ keys %{ $self->{f_seen} } ];
+    environment "variables @{$variables}";
+    environment "clauses @{$clauses}";
+
+    return $self->solver->solve( $variables, $clauses );
 
 }
+
+sub grab_deps {
+    my $self    = shift;
+    my $name    = shift;
+    my $version = shift // 0;
+    my $pack    = $name . "@" . $version;
+    my @clauses;
+
+    # push( @clauses, $pack );
+    my $dist = $self->resolve_name( $name, $version );
+    my @deps = $self->find_prereqs($dist);
+
+    environment "for $pack";
+
+    push(
+        @clauses,
+        [   $pack,
+            atom($_),
+            map { atom($_); }
+                grep { $self->seen( $_->module, $_->version ) } (
+                $self->find_prereqs(
+                    $self->resolve_name( $_->module, $_->version )
+                )
+                )
+        ]
+    ) for ( grep { $self->seen( $_->module, $_->version ) } @deps );
+
+    return \@clauses;
+
+}
+
+sub seen {
+    my $self    = shift;
+    my $module  = shift;
+    my $version = shift;
+    return ( exists $self->{f_seen}->{ join( '@', $module, $version ) } )
+        ? 0
+        : ( $self->{f_seen}->{ join( '@', $module, $version ) } = 1 and 1 );
+}
+
+sub atom {
+    join( '@', $_[0]->module, $_[0]->version );
+}
+
+##### from cpanminus, but edited (a lot)
 
 sub cpan_module {
     my ( $self, $module, $dist, $version ) = @_;
@@ -227,7 +277,7 @@ sub install_module {
     if ( $self->{skip_satisfied} ) {
         my ( $ok, $local ) = $self->check_module( $module, $version || 0 );
         if ($ok) {
-            environment( "You have $module ($local)" );
+            environment("You have $module ($local)");
             return 1;
         }
     }
@@ -235,7 +285,7 @@ sub install_module {
     my $dist = $self->resolve_name( $module, $version );
     unless ($dist) {
         my $what = $module . ( $version ? " ($version)" : "" );
-        error( "Couldn't find module or a distribution $what" );
+        error("Couldn't find module or a distribution $what");
         return;
     }
 
@@ -268,7 +318,7 @@ sub install_module {
         my ( $ok, $local )
             = $self->check_module( $dist->{module}, $requirement );
         if ( $self->{skip_installed} && $ok ) {
-            environment( "$dist->{module} is up to date. ($local)" );
+            environment("$dist->{module} is up to date. ($local)");
             return 1;
         }
     }
@@ -358,12 +408,10 @@ sub install_deps_bailout {
 
     my ( $ok, $fail ) = $self->install_deps( $dir, $depth, @deps );
     if ( !$ok ) {
-        error( "Installing the dependencies failed: " . join( ", ", @$fail ));
-        unless (
-            $self->force_install == 0
-            )
-        {
-            error( "Bailing out the installation for $target." );
+        error(
+            "Installing the dependencies failed: " . join( ", ", @$fail ) );
+        unless ( $self->force_install == 0 ) {
+            error("Bailing out the installation for $target.");
             return;
         }
     }
@@ -544,24 +592,29 @@ sub setup_local_lib {
 
     $self->bootstrap_local_lib_deps;
 }
+
 sub should_install {
-    my($self, $mod, $ver) = @_;
+    my ( $self, $mod, $ver ) = @_;
 
     environment("Checking if you have $mod $ver ... ");
-    my($ok, $local) = $self->check_module($mod, $ver);
+    my ( $ok, $local ) = $self->check_module( $mod, $ver );
 
-    if ($ok)       { environment("Yes ($local)") }
-    elsif ($local) { environment("No (" . $self->unsatisfy_how($local, $ver) . ")") }
-    else           { environment("No") }
+    if ($ok) { environment("Yes ($local)") }
+    elsif ($local) {
+        environment( "No (" . $self->unsatisfy_how( $local, $ver ) . ")" );
+    }
+    else { environment("No") }
 
     return $mod unless $ok;
     return;
 }
+
 sub check_perl_version {
-    my($self, $version) = @_;
+    my ( $self, $version ) = @_;
     require CPAN::Meta::Requirements;
-    my $req = CPAN::Meta::Requirements->from_string_hash({ perl => $version });
-    $req->accepts_module(perl => $]);
+    my $req
+        = CPAN::Meta::Requirements->from_string_hash( { perl => $version } );
+    $req->accepts_module( perl => $] );
 }
 
 sub install_deps {
@@ -625,7 +678,7 @@ sub effective_feature {
     if ( $self->{interactive} ) {
         require CPAN::Meta::Requirements;
 
-        environment( "[@{[ $feature->description ]}]" );
+        environment("[@{[ $feature->description ]}]");
 
         my $req = CPAN::Meta::Requirements->new;
         for my $phase ( @{ $dist->{want_phases} } ) {
@@ -646,9 +699,7 @@ sub effective_feature {
         if (@missing) {
             my $howmany = @missing;
             environment(
-                "==> Found missing dependencies: "
-                    . join( ", ", @missing )
-            );
+                "==> Found missing dependencies: " . join( ", ", @missing ) );
             local $self->{prompt} = 1;
             return $self->prompt_bool(
                 "Install the $howmany optional module(s)?", "y" );
@@ -660,7 +711,8 @@ sub effective_feature {
 
 sub from_prereqs {
     my ( $class, $prereq, $phases, $types ) = @_;
-    environment( p(@_) );
+
+    #environment( p(@_) );
     $types = ['requires'];
     $phases = [ 'runtime', 'configure', 'build' ];
     my @deps;
@@ -669,7 +721,8 @@ sub from_prereqs {
         my $req = CPAN::Meta::Requirements->new;
         $req->add_requirements( $prereq->requirements_for( $_, $type ) )
             for @$phases;
-        environment( p( $req->as_string_hash ) );
+
+        #  environment( p( $req->as_string_hash ) );
         push @deps, $class->from_versions( $req->as_string_hash, $type );
     }
 
@@ -838,7 +891,7 @@ sub build_stuff {
         : $local     ? "installed $distname ($action from $local)"
         :              "installed $distname";
     my $msg = "Successfully $how";
-    environment( "$msg" );
+    environment("$msg");
     $self->{installed_dists}++;
 
    #   $self->save_meta( $stuff, $dist, $module_name, \@config_deps, \@deps );
