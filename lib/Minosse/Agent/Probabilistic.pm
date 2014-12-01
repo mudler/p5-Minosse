@@ -3,6 +3,7 @@ use Deeme::Obj "Minosse::Agent";
 use feature 'say';
 use Storable qw(dclone);
 use Minosse::Util;
+use Data::Dumper;
 
 =head1 NAME
 
@@ -101,21 +102,37 @@ sub solve {
     my $variables = shift;
     my $clauses   = shift;
     my $model     = shift // {};
-    use Data::Dumper;
-    print STDERR Dumper($variables) . " - "
+    message $self->id,
+          Dumper($variables) . " - "
         . Dumper($clauses) . " - "
-        . Dumper($model) . "\n";
+        . Dumper($model);
 
     # If every clause is satisfiable, return the model which worked.
+
     return $model
         if (
-        ( grep { !$self->satisfiable( $_, $model ) } @{$clauses} ) == 0 );
-    print STDERR "Helloo\n";
+        (   grep {
+                ( defined $self->satisfiable( $_, $model )
+                        and $self->satisfiable( $_, $model ) == 1 )
+                    ? ( say Dumper($_) . " is satisfied" and 0 )
+                    : 1
+            } @{$clauses}
+        ) == 0
+        );
 
     # If any clause is **exactly** false, return `false`; this model will not
     # work.
-    return 0
-        if ( ( grep { !$self->satisfiable( $_, $model ) } @{$clauses} ) > 0 );
+
+    message $self->id, "damn" and return 0
+        if (
+        (   grep {
+                ( defined $self->satisfiable( $_, $model )
+                        and $self->satisfiable( $_, $model ) == 0 )
+                    ? 1
+                    : 0
+            } @{$clauses}
+        ) > 0
+        );
 
     # Choose a new value to test by simply looping over the possible variables
     # and checking to see if the variable has been given a value yet.
@@ -140,27 +157,28 @@ sub solve {
 # ### update
 # Copies the model, then sets `choice` = `value` in the model, and returns it.
 sub update {
-    shift;
-    my $copy = dclone(shift);
-    $copy->{shift} = shift;
+    my $self = shift;
+    message $self->id, "Updating model \n\t< \t\n" . Dumper(@_) . " \t>";
+    my $copy   = dclone(shift);
+    my $choice = shift;
+    my $value  = shift;
+    $copy->{$choice} = $value;
     return $copy;
 }
 
 # ### resolve
 # Resolve some variable to its actual value, or undefined.
 sub resolve {
-    my $self = shift;
-    my $var  = shift;
-    print STDERR "VAR: $var  \n";
-    print STDERR "VARsub: " . substr $var, 0, 1 . "  \n";
-
+    my $self  = shift;
+    my $var   = shift;
     my $model = shift;
-    if ( substr $var, 0, 1 eq "-" ) {
-        my $value = $model->{ substr $var, 1 };
+    if ( substr( $var, 0, 1 ) eq "-" ) {
+        my $value = $model->{ substr( $var, 1 ) };
+        message $self->id,
+            "Updating $var with " . !defined $value ? undef : !$value;
         return !defined $value ? undef : !$value;
     }
     else {
-
         return $model->{$var};
     }
 }
@@ -171,17 +189,34 @@ sub satisfiable {
     my $self    = shift;
     my $clauses = shift;
     my $model   = shift;
-    my @clause = @{$clauses};
-    print STDERR "is " . Dumper($clauses) . " satisfable? " . Dumper($model);
+    my @clause  = @{$clauses};
+    message $self->id, "Clauses: \n\t< \t" . Dumper($clauses) . " \t>";
+    message $self->id, "Model: \n\t< \t" . Dumper($model) . " \t>";
 
     # If every variable is false, then the clause is false.
-    return 0
-        if ( (grep {print STDERR "_$_\n\n\n\n"; $self->resolve( $_, $model ) }  @{$clauses} ) == 0 );
+    message $self->id, "No clauses in the model" and return 0
+        if (
+        (   grep {
+                ( defined $self->resolve( $_, $model )
+                        and $self->resolve( $_, $model ) == 0 )
+                    ? 0
+                    : 1
+            } @{$clauses}
+        ) == 0
+        );
 
-    # If any variable is true, then the clause is true.
-
-    return 1
-        if ( (grep { !$self->resolve( $_, $model ) }  @{$clauses}) == 0 );
+    #If any variable is true, then the clause is true.
+    message $self->id, "The clause is true" and return 1
+        if (
+        (   grep {
+                ( defined $self->resolve( $_, $model )
+                        and $self->resolve( $_, $model ) == 1 )
+                    ? 1
+                    : 0
+            } @{$clauses}
+        ) > 0
+        );
+    message $self->id, "I don't know about the clause";
 
     # Otherwise, we don't know what the clause is.
     return undef;
