@@ -140,7 +140,7 @@ sub solve {
 
     # If there are no more variables to try, return false.
 
-    return 0 if ( !defined $choice );
+    return 0 if ( !$choice );
 
     # Recurse into two cases. The variable we chose will need to be either
     # true or false for the expression to be satisfied.
