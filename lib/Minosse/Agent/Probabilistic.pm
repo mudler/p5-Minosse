@@ -102,10 +102,6 @@ sub solve {
     my $variables = shift;
     my $clauses   = shift;
     my $model     = shift // {};
-    message $self->id,
-          Dumper($variables) . " - "
-        . Dumper($clauses) . " - "
-        . Dumper($model);
 
     # If every clause is satisfiable, return the model which worked.
 
@@ -114,7 +110,7 @@ sub solve {
         (   grep {
                 ( defined $self->satisfiable( $_, $model )
                         and $self->satisfiable( $_, $model ) == 1 )
-                    ? ( say Dumper($_) . " is satisfied" and 0 )
+                    ? 0
                     : 1
             } @{$clauses}
         ) == 0
@@ -157,8 +153,7 @@ sub solve {
 # ### update
 # Copies the model, then sets `choice` = `value` in the model, and returns it.
 sub update {
-    my $self = shift;
-    message $self->id, "Updating model \n\t< \t\n" . Dumper(@_) . " \t>";
+    my $self   = shift;
     my $copy   = dclone(shift);
     my $choice = shift;
     my $value  = shift;
@@ -174,9 +169,7 @@ sub resolve {
     my $model = shift;
     if ( substr( $var, 0, 1 ) eq "-" ) {
         my $value = $model->{ substr( $var, 1 ) };
-        message $self->id,
-            "Updating $var with " . !defined $value ? undef : !$value;
-        return !defined $value ? undef : !$value;
+        return !defined $value ? undef : $value == 0 ? 1 : 0;
     }
     else {
         return $model->{$var};
@@ -190,11 +183,9 @@ sub satisfiable {
     my $clauses = shift;
     my $model   = shift;
     my @clause  = @{$clauses};
-    message $self->id, "Clauses: \n\t< \t" . Dumper($clauses) . " \t>";
-    message $self->id, "Model: \n\t< \t" . Dumper($model) . " \t>";
 
     # If every variable is false, then the clause is false.
-    message $self->id, "No clauses in the model" and return 0
+    return 0
         if (
         (   grep {
                 ( defined $self->resolve( $_, $model )
@@ -206,7 +197,7 @@ sub satisfiable {
         );
 
     #If any variable is true, then the clause is true.
-    message $self->id, "The clause is true" and return 1
+    return 1
         if (
         (   grep {
                 ( defined $self->resolve( $_, $model )
@@ -216,7 +207,6 @@ sub satisfiable {
             } @{$clauses}
         ) > 0
         );
-    message $self->id, "I don't know about the clause";
 
     # Otherwise, we don't know what the clause is.
     return undef;
