@@ -13,6 +13,7 @@ L<Minosse::Environment::Packages> is a Neural fitted network agent implementatio
 use Deeme::Obj "Minosse::Environment";
 use feature 'say';
 use Data::Printer;
+use Data::Dumper;
 use Storable qw(dclone);
 use Minosse::Util;
 use Minosse::Util qw(slurp);
@@ -20,6 +21,7 @@ use constant INSTALL => 0;
 use constant REMOVE  => 1;
 
 use Cwd;
+use List::Util qw(max);
 use Config;
 use JSON::PP;
 use CPAN::Meta::Check;
@@ -107,9 +109,9 @@ sub solve {
     my $name = shift;
 
     my $clauses   = $self->grab_deps($name);
-    my $variables = [ keys %{ $self->{f_seen} } ];
+    my $variables = [ keys %{ $self->{_variables} } ];
     environment "variables @{$variables}";
-    environment "clauses @{$clauses}";
+    environment "clauses " . Dumper($clauses);
 
     return $self->solver->solve( $variables, $clauses );
 
@@ -128,18 +130,17 @@ sub grab_deps {
 
     environment "for $pack";
 
+    #for now 1st depth
     push(
         @clauses,
-        [   $pack,
-            atom($_),
-            map { atom($_); }
-                grep { $self->seen( $_->module, $_->version ) } (
+        [   $self->seen( $_->module, $_->version ),
+            map { $self->seen( $_->module, $_->version ) } (
                 $self->find_prereqs(
                     $self->resolve_name( $_->module, $_->version )
                 )
-                )
+            )
         ]
-    ) for ( grep { $self->seen( $_->module, $_->version ) } @deps );
+    ) for (@deps);
 
     return \@clauses;
 
@@ -149,9 +150,14 @@ sub seen {
     my $self    = shift;
     my $module  = shift;
     my $version = shift;
-    return ( exists $self->{f_seen}->{ join( '@', $module, $version ) } )
-        ? 0
-        : ( $self->{f_seen}->{ join( '@', $module, $version ) } = 1 and 1 );
+    $self->{_variables}->{ join( '@', $module, $version ) }++;
+    return
+        ( $version == 0 ) ? join( '@', $module, 0 )
+        : ( keys %{ $self->{f_seen}->{$module} } > 0
+            and max( keys %{ $self->{f_seen}->{$module} } ) > $version )
+        ? join( '@', $module, max( keys %{ $self->{f_seen}->{$module} } ) )
+        : ( $self->{f_seen}->{$module}->{$version} = 1
+            and join( '@', $module, $version ) );
 }
 
 sub atom {
